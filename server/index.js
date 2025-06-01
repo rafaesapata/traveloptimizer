@@ -30,7 +30,248 @@ staticPaths.forEach(staticPath => {
   app.use(express.static(staticPath));
 });
 
-// Endpoint para busca de voos
+// Endpoint para busca de voos - POST /api/search (usado pelo frontend)
+app.post('/api/search', async (req, res) => {
+  // Configurar timeout global para o endpoint (5 segundos)
+  const ENDPOINT_TIMEOUT = 5000;
+  let endpointTimer = null;
+  
+  // Configurar timeout global para garantir resposta
+  endpointTimer = setTimeout(() => {
+    console.log('[TIMEOUT] Timeout global do endpoint atingido após 5 segundos');
+    if (!res.headersSent) {
+      return res.status(408).json({
+        success: false,
+        results: [],
+        errors: [{provider: 'Sistema', error: 'Timeout global do endpoint atingido'}],
+        message: 'A busca demorou muito para responder. Por favor, tente novamente.'
+      });
+    }
+  }, ENDPOINT_TIMEOUT);
+  
+  const { origin, destination, departureDate, returnDate, adults = 1, children = 0, cabinClass = 'economy', useMiles = true, useSmartSearch = true } = req.body;
+  
+  // Converter para números
+  const numAdults = parseInt(adults) || 1;
+  const numChildren = parseInt(children) || 0;
+  const totalPassengers = numAdults + numChildren;
+  
+  // Configurar resposta como JSON normal (não streaming)
+  res.setHeader('Content-Type', 'application/json');
+  
+  // Preparar array para armazenar resultados
+  let results = [];
+  let errors = [];
+  
+  console.log(`Busca de voos (POST /api/search): ${origin} → ${destination}, Ida: ${departureDate}, Volta: ${returnDate}, Passageiros: ${numAdults} adultos, ${numChildren} crianças`);
+  
+    console.log('[INFO] Iniciando busca real em todos os provedores');
+  
+  // Função para criar uma promessa com timeout
+  const searchWithTimeout = (searchFn, provider, timeout = 5000) => {
+    console.log(`[INFO] Iniciando busca para ${provider} com timeout de ${timeout}ms`);
+    
+    return new Promise((resolve) => {
+      // Flag para controlar se a promessa já foi resolvida
+      let isResolved = false;
+      
+      // Função para resolver apenas uma vez
+      const safeResolve = (result) => {
+        if (!isResolved) {
+          isResolved = true;
+          console.log(`[INFO] Resolvendo promessa para ${provider} com status: ${result.status}`);
+          resolve(result);
+        }
+      };
+      
+      // Criar uma promessa para o timeout
+      const timeoutPromise = setTimeout(() => {
+        console.log(`[WARN] Timeout atingido para o provedor ${provider}`);
+        safeResolve({ 
+          status: 'rejected', 
+          reason: new Error(`Timeout ao buscar dados do ${provider}`) 
+        });
+      }, timeout);
+      
+      // Criar uma promessa para a busca
+      try {
+        console.log(`[INFO] Chamando função de busca para ${provider}`);
+        
+        searchFn(origin, destination, departureDate, returnDate, numAdults, numChildren)
+          .then(result => {
+            clearTimeout(timeoutPromise); // Limpar o timeout se a busca completar
+            console.log(`[INFO] Provedor ${provider} retornou com sucesso`);
+            safeResolve({ status: 'fulfilled', value: result });
+          })
+          .catch(error => {
+            clearTimeout(timeoutPromise); // Limpar o timeout se a busca falhar
+            console.log(`[WARN] Erro no provedor ${provider}: ${error.message}`);
+            safeResolve({ status: 'rejected', reason: error });
+          });
+      } catch (error) {
+        clearTimeout(timeoutPromise); // Limpar o timeout se houver exceção
+        console.log(`[ERROR] Exceção ao chamar função de busca para ${provider}: ${error.message}`);
+        safeResolve({ 
+          status: 'rejected', 
+          reason: error 
+        });
+      }
+    });
+  };
+  
+  // Executar busca em todos os provedores em paralelo
+  try {
+    console.log('[INFO] Iniciando busca em todos os provedores');
+    
+    const providerResults = await Promise.race([
+      Promise.allSettled([
+        searchWithTimeout(searchSkyscanner, 'Skyscanner', 5000),
+        searchWithTimeout(searchKayak, 'Kayak', 5000),
+        searchWithTimeout(searchDecolar, 'Decolar', 5000),
+        searchWithTimeout(searchCopa, 'Copa Airlines', 5000),
+        searchWithTimeout(searchAzul, 'Azul', 5000),
+        searchWithTimeout(searchLatam, 'Latam', 5000),
+        searchWithTimeout(searchGol, 'Gol', 5000)
+      ]),
+      new Promise(resolve => setTimeout(() => {
+        console.log('[WARN] Timeout global de busca de provedores atingido (10s)');
+        resolve([
+          { status: 'rejected', reason: new Error('Timeout global de busca') }
+        ]);
+      }, 10000))
+    ]);
+    
+    console.log('[INFO] Busca em todos os provedores concluída');
+    
+    // Processar resultados de todos os provedores
+    const providerNames = ['Skyscanner', 'Kayak', 'Decolar', 'Copa Airlines', 'Azul', 'Latam', 'Gol'];
+    
+    providerResults.forEach((result, index) => {
+      if (index < providerNames.length) {
+        if (result.status === 'fulfilled' && result.value && Array.isArray(result.value)) {
+          results.push({
+            provider: providerNames[index],
+            flights: result.value
+          });
+        } else if (result.status === 'rejected' && result.reason) {
+          errors.push({
+            provider: providerNames[index],
+            error: result.reason.message || 'Erro desconhecido'
+          });
+        }
+      }
+    });
+  } catch (error) {
+    console.error('[ERROR] Erro ao processar resultados dos provedores:', error);
+    errors.push({
+      provider: 'Sistema',
+      error: 'Erro ao processar resultados dos provedores'
+    });
+  }
+    
+    // CÓDIGO DESABILITADO TEMPORARIAMENTE PARA DEPURAÇÃO
+    // Função para criar uma promessa com timeout - DESABILITADO
+    // const searchWithTimeout = (searchFn, provider, timeout = 3000) => {
+    //   console.log(`[DEBUG] Iniciando busca para ${provider} com timeout de ${timeout}ms`);
+      
+    //   return new Promise((resolve) => {
+    //     // Flag para controlar se a promessa já foi resolvida
+    //     let isResolved = false;
+        
+    //     // Função para resolver apenas uma vez
+    //     const safeResolve = (result) => {
+    //       if (!isResolved) {
+    //         isResolved = true;
+    //         console.log(`[DEBUG] Resolvendo promessa para ${provider} com status: ${result.status}`);
+    //         resolve(result);
+    //       }
+    //     };
+    //     
+    //     // Criar uma promessa para o timeout
+    //     const timeoutPromise = setTimeout(() => {
+    //       console.log(`[DEBUG] Timeout atingido para o provedor ${provider}`);
+    //       safeResolve({ 
+    //         status: 'rejected', 
+    //         reason: new Error(`Timeout ao buscar dados do ${provider}`) 
+    //       });
+    //     }, timeout);
+    //     
+    //     // Criar uma promessa para a busca
+    //     try {
+    //       console.log(`[DEBUG] Chamando função de busca para ${provider}`);
+    //       
+    //       searchFn(origin, destination, departureDate, returnDate, numAdults, numChildren)
+    //         .then(result => {
+    //           clearTimeout(timeoutPromise); // Limpar o timeout se a busca completar
+    //           console.log(`[DEBUG] Provedor ${provider} retornou com sucesso`);
+    //           safeResolve({ status: 'fulfilled', value: result });
+    //         })
+    //         .catch(error => {
+    //           clearTimeout(timeoutPromise); // Limpar o timeout se a busca falhar
+    //           console.log(`[DEBUG] Erro no provedor ${provider}: ${error.message}`);
+    //           safeResolve({ status: 'rejected', reason: error });
+    //         });
+    //     } catch (error) {
+    //       clearTimeout(timeoutPromise); // Limpar o timeout se houver exceção
+    //       console.log(`[DEBUG] Exceção ao chamar função de busca para ${provider}: ${error.message}`);
+    //       safeResolve({ 
+    //         status: 'rejected', 
+    //         reason: error 
+    //       });
+    //     }
+    //   });
+    // };
+    
+    // Todo o código de busca em provedores foi desabilitado para depuração
+    // Fim do código desabilitado
+    // Todo o código de Promise.all e Promise.allSettled foi desabilitado para depuração
+    
+    // Código removido - Não usar mais simulações
+    
+    // Todo o código de processamento de resultados foi desabilitado
+    // const providerResults = []; // Não há resultados de provedores para processar
+    
+    /* 
+    // Código original desabilitado
+    providerResults.forEach((result, index) => {
+        const providerNames = ['Skyscanner', 'Kayak', 'Decolar', 'Copa Airlines', 'Azul', 'Latam', 'Gol'];
+    */
+    /*    if (result.status === 'fulfilled') {
+          results.push({
+            provider: providerNames[index],
+            flights: result.value
+    */
+    /*      });
+        } else {
+          errors.push({
+            provider: providerNames[index],
+    */
+    /*        error: result.reason.message
+          });
+        }
+      });
+    */
+  
+    // Limpar o timeout global do endpoint
+    if (endpointTimer) {
+      clearTimeout(endpointTimer);
+      endpointTimer = null;
+    }
+    
+    // Enviar resposta
+    console.log('[INFO] Enviando resposta ao frontend');
+    console.log(`[INFO] Total de resultados: ${results.length}, Total de erros: ${errors.length}`);
+    
+    res.json({
+      success: true,
+      results,
+      errors: errors.length > 0 ? errors : undefined,
+      message: results.length > 0 ? 'Busca concluída com sucesso (dados reais)' : 'Nenhum resultado encontrado'
+    });
+  // Removido bloco catch que estava causando erro de sintaxe
+});
+
+// Endpoint para busca de voos - GET /api/flights (legado)
 app.get('/api/flights', async (req, res) => {
   const { origin, destination, departureDate, returnDate, adults = 1, children = 0 } = req.query;
   
@@ -588,7 +829,6 @@ app.get('/api/best-prices', async (req, res) => {
         // Se todas as buscas falharem, propagar o erro para ser tratado pelo chamador
         console.error(`Erro ao buscar preços para ${combo.departureDate} - ${combo.returnDate}:`, error);
         throw new Error(`Não foi possível obter dados reais para o período ${combo.departureDate} - ${combo.returnDate}`);
-      }
       }
     });
     

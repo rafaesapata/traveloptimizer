@@ -1,110 +1,168 @@
+console.log("Carregando components.js");
+
+// Componente Error Boundary para capturar erros de renderização
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    // Atualiza o estado para que a próxima renderização mostre a UI alternativa
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // Você também pode registrar o erro em um serviço de relatório de erros
+    console.error("Erro capturado pelo ErrorBoundary:", error, errorInfo);
+    this.setState({ errorInfo });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // Você pode renderizar qualquer UI alternativa
+      return React.createElement('div', { className: 'error-container' },
+        React.createElement('h2', null, 'Algo deu errado'),
+        React.createElement('p', null, 'Ocorreu um erro ao renderizar esta parte da aplicação.'),
+        React.createElement('p', null, 'Detalhes: ', this.state.error && this.state.error.toString()),
+        React.createElement('button', { 
+          onClick: () => window.location.reload(),
+          className: 'btn btn-primary'
+        }, 'Recarregar página')
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 // Componente de Autocomplete para aeroportos
-function AirportAutocomplete({ id, label, value, onChange, placeholder }) {
-  const [inputValue, setInputValue] = React.useState(value);
+function AutocompleteInput({ id, placeholder, onChange, value }) {
+  const [inputValue, setInputValue] = React.useState(value || '');
   const [suggestions, setSuggestions] = React.useState([]);
   const [showSuggestions, setShowSuggestions] = React.useState(false);
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const inputRef = React.useRef(null);
   
-  // Efeito para sincronizar o valor externo com o interno
   React.useEffect(() => {
-    // Se o valor externo for um código de aeroporto válido, mantenha-o
-    const airport = airports.find(a => a.code === value);
-    if (airport) {
-      setInputValue(value);
+    if (value !== inputValue) {
+      setInputValue(value || '');
     }
   }, [value]);
   
-  // Função para atualizar as sugestões com base no texto digitado
-  const updateSuggestions = (text) => {
-    if (!text || text.length < 2) {
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setInputValue(value);
+    
+    if (value.length >= 2) {
+      // Filtrar aeroportos baseado no input
+      const filtered = window.airports.filter(airport => 
+        airport.code.toLowerCase().includes(value.toLowerCase()) || 
+        airport.name.toLowerCase().includes(value.toLowerCase()) ||
+        airport.city.toLowerCase().includes(value.toLowerCase()) ||
+        airport.country.toLowerCase().includes(value.toLowerCase())
+      ).slice(0, 10);
+      
+      setSuggestions(filtered);
+      setShowSuggestions(true);
+      setSelectedIndex(-1);
+    } else {
       setSuggestions([]);
-      return;
+      setShowSuggestions(false);
     }
     
-    const results = searchAirports(text);
-    setSuggestions(results);
-    setSelectedIndex(-1);
+    if (onChange) {
+      onChange(e);
+    }
   };
   
-  // Manipulador para mudança no input
-  const handleInputChange = (e) => {
-    const text = e.target.value;
-    setInputValue(text);
-    updateSuggestions(text);
-    setShowSuggestions(true);
-  };
-  
-  // Manipulador para seleção de sugestão
-  const handleSelectSuggestion = (airport) => {
-    setInputValue(airport.code);
+  const handleSuggestionClick = (suggestion) => {
+    setInputValue(suggestion.code);
     setSuggestions([]);
     setShowSuggestions(false);
-    onChange(airport.code);
+    
+    if (onChange) {
+      const syntheticEvent = { target: { id, value: suggestion.code } };
+      onChange(syntheticEvent);
+    }
   };
   
-  // Manipulador para teclas de navegação
   const handleKeyDown = (e) => {
-    if (!showSuggestions || suggestions.length === 0) return;
-    
-    // Seta para baixo
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setSelectedIndex(prev => Math.min(prev + 1, suggestions.length - 1));
-    }
-    // Seta para cima
-    else if (e.key === 'ArrowUp') {
+    } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setSelectedIndex(prev => Math.max(prev - 1, 0));
-    }
-    // Enter para selecionar
-    else if (e.key === 'Enter' && selectedIndex >= 0) {
+      setSelectedIndex(prev => Math.max(prev - 1, -1));
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
       e.preventDefault();
-      handleSelectSuggestion(suggestions[selectedIndex]);
-    }
-    // Escape para fechar sugestões
-    else if (e.key === 'Escape') {
+      handleSuggestionClick(suggestions[selectedIndex]);
+    } else if (e.key === 'Escape') {
       setShowSuggestions(false);
     }
   };
   
-  // Manipulador para perda de foco
   const handleBlur = () => {
-    // Pequeno atraso para permitir cliques nas sugestões
-    setTimeout(() => {
-      setShowSuggestions(false);
-    }, 200);
+    // Pequeno delay para permitir que o clique na sugestão seja processado
+    setTimeout(() => setShowSuggestions(false), 200);
   };
   
-  return React.createElement('div', { className: 'form-group' },
-    React.createElement('label', { htmlFor: id }, label),
-    React.createElement('div', { className: 'autocomplete-container' },
-      React.createElement('input', {
-        ref: inputRef,
-        id: id,
-        type: 'text',
-        className: 'autocomplete-input',
-        value: inputValue,
-        onChange: handleInputChange,
-        onKeyDown: handleKeyDown,
-        onFocus: () => updateSuggestions(inputValue),
-        onBlur: handleBlur,
-        placeholder: placeholder || 'Digite o código ou nome do aeroporto'
-      }),
-      showSuggestions && suggestions.length > 0 && 
-        React.createElement('div', { className: 'autocomplete-results' },
-          suggestions.map((airport, index) => 
-            React.createElement('div', {
-              key: airport.code,
-              className: `autocomplete-item ${index === selectedIndex ? 'selected' : ''}`,
-              onClick: () => handleSelectSuggestion(airport)
-            },
-              React.createElement('span', { className: 'autocomplete-code' }, airport.code),
-              React.createElement('span', { className: 'autocomplete-name' }, airport.name),
-              React.createElement('span', { className: 'autocomplete-country' }, `(${airport.country})`)
+  return React.createElement('div', { className: 'autocomplete-container' },
+    React.createElement('input', {
+      ref: inputRef,
+      id: id,
+      type: 'text',
+      className: 'form-control',
+      placeholder: placeholder,
+      value: inputValue,
+      onChange: handleInputChange,
+      onKeyDown: handleKeyDown,
+      onFocus: () => inputValue.length >= 2 && suggestions.length > 0 && setShowSuggestions(true),
+      onBlur: handleBlur
+    }),
+    showSuggestions && suggestions.length > 0 && React.createElement('div', { className: 'suggestions-container' },
+      React.createElement('ul', { className: 'suggestions-list' },
+        suggestions.map((suggestion, index) => 
+          React.createElement('li', {
+            key: suggestion.code,
+            className: index === selectedIndex ? 'suggestion-item selected' : 'suggestion-item',
+            onClick: () => handleSuggestionClick(suggestion)
+          },
+            React.createElement('div', { className: 'suggestion-code' }, suggestion.code),
+            React.createElement('div', { className: 'suggestion-details' },
+              React.createElement('div', { className: 'suggestion-name' }, suggestion.name),
+              React.createElement('div', { className: 'suggestion-location' }, `${suggestion.city}, ${suggestion.country}`)
             )
           )
         )
+      )
     )
   );
 }
+
+// Componente de rodapé
+function Footer() {
+  return React.createElement('footer', { className: 'footer' },
+    React.createElement('div', { className: 'container' },
+      React.createElement('div', { className: 'footer-content' },
+        React.createElement('div', { className: 'footer-copyright' },
+          React.createElement('p', null, '© 2025 UDS Travel Optimizer v1.2.1')
+        ),
+        React.createElement('div', { className: 'footer-links' },
+          React.createElement('a', { href: '#', className: 'footer-link' }, 'Termos de Uso'),
+          React.createElement('a', { href: '#', className: 'footer-link' }, 'Política de Privacidade'),
+          React.createElement('a', { href: '#', className: 'footer-link' }, 'Contato')
+        )
+      )
+    )
+  );
+}
+
+// Exportar componentes para uso global
+window.Components = {
+  ErrorBoundary,
+  AutocompleteInput,
+  Footer
+};
+
+console.log("components.js carregado com sucesso");

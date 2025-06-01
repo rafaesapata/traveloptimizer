@@ -63,6 +63,27 @@
   <!-- O rodapé será renderizado pelo React -->
   <div id="footer-container"></div>
   
-  <script src="app_real.js?v=1.2.1"></script>
+  <!-- Scripts modularizados -->
+  <script src="components.js"></script>
+  <script src="api.js"></script>
+  <script src="utils.js"></script>
+  <script src="app.js"></script>
+  
+  <!-- Script de inicialização -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log("Inicializando aplicação Travel Optimizer v1.2.1");
+      const rootElement = document.getElementById('root');
+      if (rootElement) {
+        try {
+          console.log("Renderizando componente App no elemento root");
+          ReactDOM.render(React.createElement(window.App), rootElement);
+          console.log("Renderização do App concluída com sucesso");
+        } catch (error) {
+          console.error("Erro ao renderizar o App:", error);
+        }
+      }
+    });
+  </script>
 </body>
 </html>
