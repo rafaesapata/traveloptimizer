@@ -16,19 +16,6 @@ function FlightDetails({ flight }) {
   const { details } = flight;
   
   return React.createElement('div', { className: 'flight-details' },
-    // Banner de busca inteligente (se aplicável)
-    flight.isSmartCombo && React.createElement('div', { className: 'smart-combo-banner' },
-      React.createElement('div', { className: 'smart-combo-banner-icon' }, '🔥'),
-      React.createElement('div', { className: 'smart-combo-banner-content' },
-        React.createElement('h3', null, 'Bilhetes Separados - Busca Inteligente'),
-        React.createElement('p', null, 
-          `Economize ${Math.round(flight.smartComboSavingsPercent)}% (${currency === 'USD' ? '$' : 'R$'}${currency === 'USD' ? flight.smartComboSavings.toFixed(2) : Math.round(flight.smartComboSavings * 5.2).toLocaleString()}) comprando bilhetes separados em vez da rota direta.`
-        ),
-        React.createElement('p', { className: 'smart-combo-banner-note' }, 
-          'Nota: Você precisará fazer reservas separadas para cada trecho desta combinação.'
-        )
-      )
-    ),
     // Informações básicas
     React.createElement('div', { className: 'details-section' },
       React.createElement('h4', null, 'Informações do Voo'),
@@ -245,7 +232,6 @@ function ProviderResults({ providerData, useMiles, sortKey, filterStops, filterC
                 'Combo Inteligente'
               ) : 
               React.createElement('div', { className: 'airline-logo' },
-                React.createElement('span', { className: 'airline-icon', dangerouslySetInnerHTML: { __html: getAirlineIcon(flight.provider) } }),
                 React.createElement('span', { className: 'airline-name' }, flight.provider)
               )
           ),
@@ -255,15 +241,8 @@ function ProviderResults({ providerData, useMiles, sortKey, filterStops, filterC
               React.createElement('span', { className: 'price-unit' }, 'milhas')
             ) : 
             React.createElement('div', { className: 'price-display' },
-              React.createElement('span', { className: 'price-value' }, 
-                currency === 'USD' ? 
-                  `$${flight.price}` : 
-                  `R$${Math.round(flight.price * 5.2).toLocaleString()}`
-              ),
-              isSmartCombo && React.createElement('div', { className: 'smart-combo-info' },
-                React.createElement('span', { className: 'price-tag' }, '🔥'),
-                React.createElement('span', { className: 'smart-combo-savings' }, `Economia de ${Math.round(flight.smartComboSavingsPercent)}%`)
-              )
+              React.createElement('span', { className: 'price-value' }, `$${flight.price}`),
+              isSmartCombo && React.createElement('span', { className: 'price-tag' }, '🔥')
             )
           ),
           React.createElement('td', null, 
@@ -421,8 +400,12 @@ function getMonthAfter(months) {
 }
 
 function getMonthName(monthStr) {
-  cofunction App() {
-  // Estados para formulário de busca
+  const [year, month] = monthStr.split('-');
+  const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+  return date.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+}
+
+function App() {
   const [origin, setOrigin] = useState('MGF');
   const [destination, setDestination] = useState('MCO');
   const [departureDate, setDepartureDate] = useState(getTomorrowDate());
@@ -431,26 +414,17 @@ function getMonthName(monthStr) {
   const [children, setChildren] = useState(0);
   const [useMiles, setUseMiles] = useState(false);
   const [useSmartSearch, setUseSmartSearch] = useState(false);
-  
-  // Estados para busca por período
   const [usePeriodSearch, setUsePeriodSearch] = useState(false);
   const [startMonth, setStartMonth] = useState(getCurrentMonth());
-  const [endMonth, setEndMonth] = useState(getNextMonth());
-  const [periodResults, setPeriodResults] = useState([]);
-  
-  // Estados para resultados
+  const [endMonth, setEndMonth] = useState(getMonthAfter(5));
   const [providerResults, setProviderResults] = useState([]);
   const [smartComboResults, setSmartComboResults] = useState([]);
+  const [periodResults, setPeriodResults] = useState([]);
   const [loadingProviders, setLoadingProviders] = useState({});
   const [error, setError] = useState(null);
-  
-  // Estados para filtros e ordenação
+  const [sortKey, setSortKey] = useState('price');
   const [filterStops, setFilterStops] = useState('');
   const [filterCabin, setFilterCabin] = useState('');
-  const [sortKey, setSortKey] = useState('price');
-  const [currency, setCurrency] = useState('USD');
-  
-  // Estado para voo selecionado
   const [selectedFlightId, setSelectedFlightId] = useState(null);
   const [selectedFlight, setSelectedFlight] = useState(null);
   
@@ -897,37 +871,6 @@ function getMonthName(monthStr) {
               React.createElement('option', { key: i, value: type }, 
                 type || 'Todas as classes'
               )
-            )
-          )
-        ),
-        React.createElement('div', { className: 'form-group filter-select' },
-          React.createElement('label', null, 'Ordenar por'),
-          React.createElement('select', {
-            value: sortKey,
-            onChange: e => setSortKey(e.target.value)
-          },
-            [
-              { value: 'price', label: 'Preço' },
-              { value: 'duration', label: 'Tempo de voo' },
-              { value: 'stops', label: 'Número de paradas' },
-              { value: 'category', label: 'Classe' },
-              { value: 'provider', label: 'Companhia aérea' }
-            ].map((option, i) => 
-              React.createElement('option', { key: i, value: option.value }, option.label)
-            )
-          )
-        ),
-        React.createElement('div', { className: 'form-group filter-select' },
-          React.createElement('label', null, 'Moeda'),
-          React.createElement('select', {
-            value: currency,
-            onChange: e => setCurrency(e.target.value)
-          },
-            [
-              { value: 'USD', label: 'Dólar (USD)' },
-              { value: 'BRL', label: 'Real (BRL)' }
-            ].map((option, i) => 
-              React.createElement('option', { key: i, value: option.value }, option.label)
             )
           )
         )

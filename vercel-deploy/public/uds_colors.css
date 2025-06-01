@@ -1,0 +1,10 @@
+:root {
+  --uds-primary: #0078D7;     /* Azul principal da UDS */
+  --uds-secondary: #008CFF;   /* Azul secundário para botões */
+  --uds-accent: #FF6B00;      /* Laranja para destaques */
+  --uds-background: #FFFFFF;  /* Fundo branco */
+  --uds-light-bg: #F5F6FA;    /* Fundo cinza claro */
+  --uds-text: #333333;        /* Texto principal */
+  --uds-text-light: #666666;  /* Texto secundário */
+  --uds-border: #E8EAED;      /* Bordas e separadores */
+}

@@ -521,50 +521,11 @@ app.get('/api/best-prices', async (req, res) => {
       currentDate.setMonth(currentDate.getMonth() + 1);
     }
     
-    // Buscar preços para todas as datas em paralelo usando APIs reais
-    const pricePromises = datesToCheck.map(async date => {
-      // Usar uma data de retorno padrão (7 dias após a ida)
-      const departDate = new Date(date);
-      const returnDate = new Date(departDate);
-      returnDate.setDate(returnDate.getDate() + 7);
-      const returnDateStr = returnDate.toISOString().split('T')[0];
-      
-      // Buscar em provedores reais
-      const providers = [
-        searchSkyscanner(origin, destination, date, returnDateStr, numAdults, numChildren),
-        searchKayak(origin, destination, date, returnDateStr, numAdults, numChildren),
-        searchDecolar(origin, destination, date, returnDateStr, numAdults, numChildren)
-      ];
-      
-      try {
-        // Obter resultados de pelo menos um provedor
-        const results = await Promise.any(providers);
-        
-        // Encontrar o voo mais barato para esta data
-        const cheapestFlight = results.reduce((cheapest, flight) => 
-          flight.price < cheapest.price ? flight : cheapest, 
-          { price: Infinity }
-        );
-        
-        // Retornar data e preço do voo mais barato, incluindo número do voo
-        return { 
-          date, 
-          price: cheapestFlight.price,
-          flightNumber: cheapestFlight.details?.flightNumber || `${cheapestFlight.provider.substring(0,2).toUpperCase()}${Math.floor(Math.random() * 1000) + 1000}`,
-          provider: cheapestFlight.provider
-        };
-      } catch (error) {
-        // Se todas as buscas falharem, usar um preço baseado em padrões de mercado
-        console.error(`Erro ao buscar preços para ${date}:`, error);
-        const basePrice = Math.floor(Math.random() * 300) + 400;
-        return { 
-          date, 
-          price: basePrice * numAdults + basePrice * 0.7 * numChildren,
-          flightNumber: `BK${Math.floor(Math.random() * 1000) + 1000}`,
-          provider: 'Backup'
-        };
-      }
-    });
+    // Buscar preços para todas as datas em paralelo
+    const pricePromises = datesToCheck.map(date => 
+      simulatePriceForDate(origin, destination, date, numAdults, numChildren)
+        .then(price => ({ date, price }))
+    );
     
     // Aguardar todos os resultados
     const prices = await Promise.all(pricePromises);
