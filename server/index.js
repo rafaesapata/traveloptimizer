@@ -159,19 +159,19 @@ app.post('/api/search', async (req, res) => {
     });
   };
   
-  // Executar busca em todos os provedores em paralelo
+  // Executar busca apenas na LATAM (outros provedores comentados temporariamente)
   try {
-    console.log('[INFO] Iniciando busca em todos os provedores');
+    console.log('[INFO] Iniciando busca apenas na LATAM');
     
     const providerResults = await Promise.race([
       Promise.allSettled([
-        searchWithTimeout(searchSkyscanner, 'Skyscanner', 5000),
-        searchWithTimeout(searchKayak, 'Kayak', 5000),
-        searchWithTimeout(searchDecolar, 'Decolar', 5000),
-        searchWithTimeout(searchCopa, 'Copa Airlines', 5000),
-        searchWithTimeout(searchAzul, 'Azul', 5000),
-        searchWithTimeout(searchLatam, 'Latam', 5000),
-        searchWithTimeout(searchGol, 'Gol', 5000)
+        // searchWithTimeout(searchSkyscanner, 'Skyscanner', 5000), // COMENTADO
+        // searchWithTimeout(searchKayak, 'Kayak', 5000), // COMENTADO
+        // searchWithTimeout(searchDecolar, 'Decolar', 5000), // COMENTADO
+        // searchWithTimeout(searchCopa, 'Copa Airlines', 5000), // COMENTADO
+        // searchWithTimeout(searchAzul, 'Azul', 5000), // COMENTADO
+        searchWithTimeout(searchLatam, 'Latam', 5000), // APENAS LATAM ATIVA
+        // searchWithTimeout(searchGol, 'Gol', 5000) // COMENTADO
       ]),
       new Promise(resolve => setTimeout(() => {
         console.log('[WARN] Timeout global de busca de provedores atingido (10s)');
@@ -181,10 +181,10 @@ app.post('/api/search', async (req, res) => {
       }, 10000))
     ]);
     
-    console.log('[INFO] Busca em todos os provedores concluída');
+    console.log('[INFO] Busca na LATAM concluída');
     
-    // Processar resultados de todos os provedores
-    const providerNames = ['Skyscanner', 'Kayak', 'Decolar', 'Copa Airlines', 'Azul', 'Latam', 'Gol'];
+    // Processar resultados apenas da LATAM
+    const providerNames = [/* 'Skyscanner', 'Kayak', 'Decolar', 'Copa Airlines', 'Azul', */ 'Latam' /* , 'Gol' */];
     
     providerResults.forEach((result, index) => {
       if (index < providerNames.length) {
