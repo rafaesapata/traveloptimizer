@@ -416,8 +416,13 @@ async function searchLatamFlights(origin, destination, departureDate, returnDate
       throw new Error('Falha ao inicializar o crawler da LATAM. Verifique se o Puppeteer está instalado corretamente.');
     }
 
-    // Buscar voos reais
-    const realFlights = await crawler.searchFlights(origin, destination, departureDate, returnDate);
+    // Buscar voos reais com timeout
+    const realFlights = await Promise.race([
+      crawler.searchFlights(origin, destination, departureDate, returnDate),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout do crawler após 25 segundos')), 25000)
+      )
+    ]);
     
     if (realFlights && realFlights.length > 0) {
       console.log(`Encontrados ${realFlights.length} voos reais da LATAM`);

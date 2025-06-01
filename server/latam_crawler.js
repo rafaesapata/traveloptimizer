@@ -42,12 +42,12 @@ class LatamCrawler {
     try {
       console.log(`Buscando voos: ${origin} -> ${destination} em ${departureDate}`);
       
-      // Navegar para o site da LATAM
-      await this.page.goto(this.baseUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+      // Navegar para o site da LATAM com timeout maior
+      await this.page.goto(this.baseUrl, { waitUntil: 'networkidle2', timeout: 45000 });
       
       // Aguardar e aceitar cookies se necessário
       try {
-        await this.page.waitForSelector('button:contains("Aceite todos os cookies")', { timeout: 5000 });
+        await this.page.waitForSelector('button:contains("Aceite todos os cookies")', { timeout: 8000 });
         await this.page.click('button:contains("Aceite todos os cookies")');
         await this.page.waitForTimeout(2000);
       } catch (e) {
@@ -64,14 +64,14 @@ class LatamCrawler {
       }
 
       // Preencher origem
-      await this.page.waitForSelector('input[placeholder*="origem"]', { timeout: 10000 });
+      await this.page.waitForSelector('input[placeholder*="origem"]', { timeout: 15000 });
       await this.page.click('input[placeholder*="origem"]');
       await this.page.type('input[placeholder*="origem"]', origin);
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForTimeout(3000);
       
       // Selecionar primeira sugestão de origem
       try {
-        await this.page.waitForSelector('.suggestion-item, .autocomplete-item', { timeout: 3000 });
+        await this.page.waitForSelector('.suggestion-item, .autocomplete-item', { timeout: 5000 });
         await this.page.click('.suggestion-item, .autocomplete-item');
       } catch (e) {
         console.log('Sugestão de origem não encontrada, continuando...');
@@ -80,11 +80,11 @@ class LatamCrawler {
       // Preencher destino
       await this.page.click('input[placeholder*="destino"]');
       await this.page.type('input[placeholder*="destino"]', destination);
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForTimeout(3000);
       
       // Selecionar primeira sugestão de destino
       try {
-        await this.page.waitForSelector('.suggestion-item, .autocomplete-item', { timeout: 3000 });
+        await this.page.waitForSelector('.suggestion-item, .autocomplete-item', { timeout: 5000 });
         await this.page.click('.suggestion-item, .autocomplete-item');
       } catch (e) {
         console.log('Sugestão de destino não encontrada, continuando...');
@@ -111,12 +111,12 @@ class LatamCrawler {
       // Clicar no botão de buscar
       await this.page.click('button:contains("Buscar"), button[type="submit"]');
       
-      // Aguardar resultados carregarem
-      await this.page.waitForTimeout(5000);
+      // Aguardar resultados carregarem com timeout maior
+      await this.page.waitForTimeout(8000);
       
-      // Aguardar página de resultados
+      // Aguardar página de resultados com timeout estendido
       try {
-        await this.page.waitForSelector('.flight-result, .flight-card, .flight-option', { timeout: 30000 });
+        await this.page.waitForSelector('.flight-result, .flight-card, .flight-option', { timeout: 45000 });
       } catch (e) {
         console.log('Resultados não carregaram no tempo esperado');
         return [];
