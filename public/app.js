@@ -611,7 +611,7 @@ function App() {
                     React.createElement('td', null,
                       React.createElement('div', { className: 'airline-info' },
                         React.createElement('span', { className: 'airline-logo' }, 
-                          window.airlineIcons[flight.airline] || flight.airline
+                          window.getAirlineIcon(flight.airline)
                         ),
                         React.createElement('span', { className: 'airline-name' }, flight.airline)
                       )

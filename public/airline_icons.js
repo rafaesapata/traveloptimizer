@@ -1,5 +1,5 @@
 // Mapeamento de companhias aéreas para seus ícones SVG
-const airlineIcons = {
+window.airlineIcons = {
   'Skyscanner': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
     <path fill="#0770e3" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 16.5l-5-5 1.41-1.41L11 15.67l6.59-6.59L19 10.5l-8 8z"/>
   </svg>`,
@@ -38,6 +38,25 @@ const airlineIcons = {
 };
 
 // Função para obter o ícone de uma companhia aérea
-function getAirlineIcon(airline) {
-  return airlineIcons[airline] || airlineIcons['default'];
+window.getAirlineIcon = function(airline) {
+  if (!airline) return window.airlineIcons['default'];
+  
+  // Normalizar o nome da companhia aérea para aumentar chances de correspondência
+  const normalizedAirline = airline.toString().trim();
+  
+  // Verificar correspondência exata
+  if (window.airlineIcons[normalizedAirline]) {
+    return window.airlineIcons[normalizedAirline];
+  }
+  
+  // Verificar correspondência case-insensitive
+  const airlineKeys = Object.keys(window.airlineIcons);
+  for (const key of airlineKeys) {
+    if (key.toLowerCase() === normalizedAirline.toLowerCase()) {
+      return window.airlineIcons[key];
+    }
+  }
+  
+  // Fallback para ícone padrão
+  return window.airlineIcons['default'];
 }
