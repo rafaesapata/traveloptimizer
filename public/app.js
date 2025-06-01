@@ -160,13 +160,24 @@ function App() {
         setResults(data.results || []);
         if (data.errors && data.errors.length > 0) {
           console.warn("Erros na busca:", data.errors);
+          // Mostrar aviso sobre erros, mas não impedir exibição dos resultados
+          const errorMessages = data.errors.map(e => `${e.provider}: ${e.error}`).join('; ');
+          setError(`Alguns provedores falharam: ${errorMessages}`);
         }
       } else {
-        setError(data.error || "Erro desconhecido na busca");
+        // Se não teve sucesso, mostrar o erro específico
+        const errorMessage = data.message || data.error || "Erro desconhecido na busca";
+        setError(errorMessage);
+        
+        // Se há erros específicos dos provedores, incluí-los na mensagem
+        if (data.errors && data.errors.length > 0) {
+          const providerErrors = data.errors.map(e => `${e.provider}: ${e.error}`).join('; ');
+          setError(`${errorMessage}. Detalhes: ${providerErrors}`);
+        }
       }
     } catch (error) {
       console.error("Erro ao buscar voos:", error);
-      setError("Falha ao buscar voos. Por favor, tente novamente.");
+      setError(`Falha na comunicação com o servidor: ${error.message || 'Erro de rede'}`);
     } finally {
       setLoading(false);
     }
@@ -691,9 +702,6 @@ function App() {
                           React.createElement('div', { className: 'segment' },
                             React.createElement('div', { className: 'segment-header' },
                               React.createElement('div', { className: 'segment-airline' },
-                                React.createElement('span', { className: 'airline-logo' }, 
-                                  window.airlineIcons[flight.airline] || flight.airline
-                                ),
                                 React.createElement('span', { className: 'airline-name' }, flight.airline)
                               ),
                               React.createElement('div', { className: 'segment-flight-number' }, `Voo ${flight.flightNumber}`)
@@ -760,9 +768,6 @@ function App() {
                 React.createElement('div', { className: 'price-miles' }, window.Utils.formatMiles(result.milesPrice))
               ),
               React.createElement('div', { className: 'period-result-airline' },
-                React.createElement('span', { className: 'airline-logo' }, 
-                  window.airlineIcons[result.airline] || result.airline
-                ),
                 React.createElement('span', { className: 'airline-name' }, result.airline)
               )
             )

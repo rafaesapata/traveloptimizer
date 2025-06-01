@@ -379,70 +379,87 @@ async function searchAzul(origin, destination, departureDate, returnDate, adults
   }
 }
 
-// Busca na Latam
+// Busca na Latam usando crawler real
 async function searchLatam(origin, destination, departureDate, returnDate, adults = 1, children = 0) {
   await validatePermissions();
   
   const isRoundTrip = returnDate && returnDate.trim() !== '';
   
   try {
-    console.log(`[LATAM] Buscando voos de ${origin} para ${destination} para ${adults} adultos e ${children} crianças`);
+    console.log(`[LATAM] Buscando voos REAIS de ${origin} para ${destination} para ${adults} adultos e ${children} crianças`);
     console.log(`[LATAM] Tipo de busca: ${isRoundTrip ? 'ida e volta' : 'apenas ida'}`);
     
-    // Implementação real usando a API da Latam
-    const options = {
-      method: 'GET',
-      url: 'https://latam-airlines-api.p.rapidapi.com/flights/search',
-      params: {
-        origin: origin,
-        destination: destination,
-        departureDate: departureDate,
-        returnDate: isRoundTrip ? returnDate : undefined,
-        adults: adults.toString(),
-        children: children.toString(),
-        cabinClass: 'economy'
-      },
-      headers: {
-        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || 'demo-key',
-        'X-RapidAPI-Host': 'latam-airlines-api.p.rapidapi.com'
-      }
-    };
-    
-    const response = await axios.request(options);
-    
-    if (response.data && response.data.flights) {
-      console.log(`[LATAM] API retornou ${response.data.flights.length} voos`);
-      return response.data.flights.map(flight => {
-        return createFlight(
-          'Latam',
-          origin,
-          destination,
-          flight.price,
-          flight.stops || 0,
-          flight.duration || 6,
-          flight.cabinClass || 'Economy',
-          departureDate,
-          isRoundTrip ? returnDate : null
-        );
-      });
-    }
-    
-    // Se a API não retornar dados, usar dados realistas baseados em padrões da LATAM
-    console.log('[LATAM] API não retornou dados, usando dados baseados em padrões reais da LATAM');
-    
-    return generateLatamFlights(origin, destination, departureDate, returnDate, adults, children, isRoundTrip);
+    // Usar o crawler real da LATAM
+    return await searchLatamFlights(origin, destination, departureDate, returnDate, adults, children, 'economy');
     
   } catch (error) {
-    console.error('[LATAM] Erro na busca:', error.message);
+    console.error('[LATAM] Erro na busca real:', error.message);
     
-    // Fallback com dados realistas da LATAM
-    console.log('[LATAM] Usando fallback com dados realistas');
-    return generateLatamFlights(origin, destination, departureDate, returnDate, adults, children, isRoundTrip);
+    // Não usar fallback - propagar o erro para o usuário
+    throw new Error(`LATAM: ${error.message}`);
   }
 }
 
-// Função para gerar voos da LATAM baseado no tipo de busca
-function generateLatamFlights(origin, destination, departureDate, returnDate, adults, children, isRoundTrip) {
+/// Importar o crawler real da LATAM
+const LatamCrawler = require('./latam_crawler');
+
+// Função para buscar voos reais da LATAM
+async function searchLatamFlights(origin, destination, departureDate, returnDate, adults, children, cabinClass) {
+  console.log('Iniciando busca real na LATAM...');
+  
+  const crawler = new LatamCrawler();
+  
+  try {
+    // Inicializar crawler
+    const initialized = await crawler.init();
+    if (!initialized) {
+      throw new Error('Falha ao inicializar o crawler da LATAM. Verifique se o Puppeteer está instalado corretamente.');
+    }
+
+    // Buscar voos reais
+    const realFlights = await crawler.searchFlights(origin, destination, departureDate, returnDate);
+    
+    if (realFlights && realFlights.length > 0) {
+      console.log(`Encontrados ${realFlights.length} voos reais da LATAM`);
+      
+      // Processar e formatar os voos reais
+      const formattedFlights = realFlights.map((flight, index) => {
+        return createFlight({
+          provider: 'Latam',
+          origin: origin,
+          destination: destination,
+          price: flight.price,
+          currency: flight.currency || 'BRL',
+          stops: flight.stops,
+          duration: flight.duration,
+          departureTime: flight.departureTime,
+          flightNumber: flight.flightNumber,
+          aircraft: flight.aircraft,
+          category: cabinClass === 'business' ? 'Business' : 'Economy',
+          description: flight.description,
+          departureDate: departureDate,
+          returnDate: returnDate,
+          adults: adults,
+          children: children
+        });
+      });
+
+      return formattedFlights;
+    } else {
+      throw new Error(`Nenhum voo encontrado para a rota ${origin} → ${destination} na data ${departureDate}. Verifique se a rota e data estão corretas.`);
+    }
+    
+  } catch (error) {
+    console.error('Erro durante busca real na LATAM:', error);
+    throw new Error(`Erro ao buscar voos reais na LATAM: ${error.message}`);
+  } finally {
+    // Sempre fechar o crawler
+    await crawler.close();
+  }
+}
+
+// Função de fallback com dados simulados (mantida como backup)
+function generateLatamFlightsFallback(origin, destination, departureDate, returnDate, adults, children, cabinClass) {
   const basePrice = getLatamBasePrice(origin, destination);
   const flights = [];
   

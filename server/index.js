@@ -204,11 +204,24 @@ app.post('/api/search', async (req, res) => {
   console.log('[INFO] Enviando resposta ao frontend');
   console.log(`[INFO] Total de resultados: ${results.length}, Total de erros: ${errors.length}`);
   
+  // Se houver erros e nenhum resultado, retornar erro
+  if (errors.length > 0 && results.length === 0) {
+    return res.status(400).json({
+      success: false,
+      results: [],
+      errors: errors,
+      message: `Não foi possível obter dados reais: ${errors.map(e => e.error).join(', ')}`
+    });
+  }
+  
+  // Se houver resultados, retornar sucesso (mesmo com alguns erros)
   res.json({
     success: true,
     results,
     errors: errors.length > 0 ? errors : undefined,
-    message: results.length > 0 ? 'Busca concluída com sucesso (dados reais)' : 'Nenhum resultado encontrado'
+    message: results.length > 0 ? 
+      `Busca concluída com sucesso (dados reais da LATAM)` : 
+      'Nenhum resultado encontrado'
   });
 });
 

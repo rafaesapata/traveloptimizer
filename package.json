@@ -1,6 +1,6 @@
 {
   "name": "traveloptimizer",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "description": "Flight search aggregator using Node.js and React",
   "main": "server/index.js",
   "engines": {
@@ -17,6 +17,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "puppeteer": "^24.9.0",
     "serve-static": "^1.15.0"
   }
 }

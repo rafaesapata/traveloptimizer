@@ -39,24 +39,7 @@ window.airlineIcons = {
 
 // Função para obter o ícone de uma companhia aérea
 window.getAirlineIcon = function(airline) {
-  if (!airline) return window.airlineIcons['default'];
-  
-  // Normalizar o nome da companhia aérea para aumentar chances de correspondência
-  const normalizedAirline = airline.toString().trim();
-  
-  // Verificar correspondência exata
-  if (window.airlineIcons[normalizedAirline]) {
-    return window.airlineIcons[normalizedAirline];
-  }
-  
-  // Verificar correspondência case-insensitive
-  const airlineKeys = Object.keys(window.airlineIcons);
-  for (const key of airlineKeys) {
-    if (key.toLowerCase() === normalizedAirline.toLowerCase()) {
-      return window.airlineIcons[key];
-    }
-  }
-  
-  // Fallback para ícone padrão
-  return window.airlineIcons['default'];
+  // Retornar apenas o nome da companhia aérea sem ícone SVG
+  // para evitar problemas de renderização
+  return '';
 }
