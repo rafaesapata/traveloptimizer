@@ -574,7 +574,7 @@ app.get('/api/best-prices', async (req, res) => {
           provider: cheapestFlight.provider,
           tripDuration: numTripDuration
         };
-        catch (error) {
+      } catch (error) {
         // Se todas as buscas falharem, usar um preço baseado em padrões de mercado
         console.error(`Erro ao buscar preços para ${combo.departureDate} - ${combo.returnDate}:`, error);
         const basePrice = Math.floor(Math.random() * 300) + 400;
