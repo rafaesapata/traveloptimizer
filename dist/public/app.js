@@ -868,8 +868,19 @@ function getMonthName(monthStr) {
         )
       )
     ),
-        // Opções de busca (visíveis apenas no modo de busca por datas)
+    
+    // Opções de busca (visíveis apenas no modo de busca por datas)
     !usePeriodSearch && React.createElement('div', { className: 'checkbox-container' },
+      React.createElement('div', { className: 'checkbox-group' },
+        React.createElement('label', { className: 'checkbox-label' },
+          React.createElement('input', {
+            type: 'checkbox',
+            checked: useMiles,
+            onChange: e => setUseMiles(e.target.checked)
+          }),
+          'Buscar com Milhas'
+        )
+      ),
       React.createElement('div', { className: 'checkbox-group' },
         React.createElement('label', { className: 'checkbox-label' },
           React.createElement('input', {
@@ -1061,7 +1072,7 @@ function getMonthName(monthStr) {
   const footer = React.createElement('footer', { className: 'app-footer' },
     React.createElement('div', { className: 'footer-content' },
       React.createElement('div', { className: 'footer-logo' }, 'UDS Travel Optimizer'),
-      React.createElement('div', { className: 'footer-version' }, 'v1.2.0'),
+      React.createElement('div', { className: 'footer-version' }, 'v1.1.0'),
       React.createElement('div', { className: 'footer-copyright' }, '© 2025 UDS. Todos os direitos reservados.')
     )
   );

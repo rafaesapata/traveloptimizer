@@ -1,0 +1,25 @@
+:root {
+  --uds-primary: #0078D7;     /* Azul principal da UDS */
+  --uds-secondary: #008CFF;   /* Azul secundário para botões */
+  --uds-accent: #FF6B00;      /* Laranja para destaques */
+  --uds-background: #FFFFFF;  /* Fundo branco */
+  --uds-light-bg: #F5F6FA;    /* Fundo cinza claro */
+  --uds-text: #333333;        /* Texto principal */
+  --uds-text-light: #666666;  /* Texto secundário */
+  --uds-border: #E8EAED;      /* Bordas e separadores */
+  --uds-table-header: #EBF3FB; /* Cabeçalho da tabela */
+  --uds-table-row-odd: #FFFFFF; /* Linhas ímpares da tabela */
+  --uds-table-row-even: #F7FAFD; /* Linhas pares da tabela */
+  --uds-table-hover: #E1F0FF; /* Hover na tabela */
+  --uds-table-selected: #D0E8FF; /* Linha selecionada */
+  --uds-table-border: #D0D9E4; /* Borda da tabela */
+  --uds-badge-economy: #4CAF50; /* Badge Economy */
+  --uds-badge-premium: #FF9800; /* Badge Premium Economy */
+  --uds-badge-business: #9C27B0; /* Badge Business */
+  --uds-badge-first: #F44336; /* Badge First */
+  --uds-price-color: #0078D7; /* Cor do preço */
+  --uds-miles-color: #009688; /* Cor das milhas */
+  --uds-smart-combo: #FF6B00; /* Cor para combos inteligentes */
+  --uds-stops-color: #5E35B1; /* Cor para paradas */
+  --uds-duration-color: #00838F; /* Cor para duração */
+}
