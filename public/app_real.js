@@ -95,7 +95,7 @@ function AutocompleteInput({ id, placeholder, onChange, value }) {
       value: inputValue,
       onChange: handleInputChange,
       onKeyDown: handleKeyDown,
-      onFocus: () => inputValue.length >= 2 && setSuggestions.length > 0 && setShowSuggestions(true),
+      onFocus: () => inputValue.length >= 2 && suggestions.length > 0 && setShowSuggestions(true),
       onBlur: handleBlur
     }),
     showSuggestions && suggestions.length > 0 && React.createElement('div', { className: 'suggestions-container' },
