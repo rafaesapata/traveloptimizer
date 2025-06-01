@@ -124,7 +124,7 @@ function AutocompleteInput({ id, placeholder, onChange, value }) {
       React.createElement('ul', { className: 'suggestions-list' },
         suggestions.map((suggestion, index) => 
           React.createElement('li', {
-            key: suggestion.code,
+            key: `${suggestion.code}-${index}`,
             className: index === selectedIndex ? 'suggestion-item selected' : 'suggestion-item',
             onClick: () => handleSuggestionClick(suggestion)
           },
@@ -146,7 +146,7 @@ function Footer() {
     React.createElement('div', { className: 'container' },
       React.createElement('div', { className: 'footer-content' },
         React.createElement('div', { className: 'footer-copyright' },
-          React.createElement('p', null, '© 2025 UDS Travel Optimizer v1.2.3')
+          React.createElement('p', null, '© 2025 UDS Travel Optimizer v1.2.4')
         ),
         React.createElement('div', { className: 'footer-links' },
           React.createElement('a', { href: '#', className: 'footer-link' }, 'Termos de Uso'),

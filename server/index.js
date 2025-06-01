@@ -54,6 +54,43 @@ app.post('/api/search', async (req, res) => {
   
   const { origin, destination, departureDate, returnDate, adults = 1, children = 0, cabinClass = 'economy', useMiles = true, useSmartSearch = true } = req.body;
   
+  // Validar parâmetros obrigatórios
+  if (!origin || !destination || !departureDate) {
+    clearTimeout(endpointTimer);
+    return res.status(400).json({
+      success: false,
+      results: [],
+      errors: [{provider: 'Validação', error: 'Origem, destino e data de ida são obrigatórios'}],
+      message: 'Parâmetros obrigatórios não fornecidos'
+    });
+  }
+  
+  // Validar formato da data de ida
+  const departureDateObj = new Date(departureDate);
+  if (isNaN(departureDateObj.getTime()) || departureDate.length > 10) {
+    clearTimeout(endpointTimer);
+    return res.status(400).json({
+      success: false,
+      results: [],
+      errors: [{provider: 'Validação', error: `Data de ida inválida: ${departureDate}. Use formato YYYY-MM-DD`}],
+      message: 'Data de ida em formato inválido'
+    });
+  }
+  
+  // Validar formato da data de volta (se fornecida)
+  if (returnDate) {
+    const returnDateObj = new Date(returnDate);
+    if (isNaN(returnDateObj.getTime()) || returnDate.length > 10) {
+      clearTimeout(endpointTimer);
+      return res.status(400).json({
+        success: false,
+        results: [],
+        errors: [{provider: 'Validação', error: `Data de volta inválida: ${returnDate}. Use formato YYYY-MM-DD`}],
+        message: 'Data de volta em formato inválido'
+      });
+    }
+  }
+  
   // Converter para números
   const numAdults = parseInt(adults) || 1;
   const numChildren = parseInt(children) || 0;

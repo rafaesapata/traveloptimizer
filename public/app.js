@@ -42,10 +42,14 @@ function App() {
         setDestination(value);
         break;
       case 'departure-date':
-        setDepartureDate(value);
+        // Garantir formato correto da data (YYYY-MM-DD)
+        const formattedDepartureDate = value ? value.toString() : '';
+        setDepartureDate(formattedDepartureDate);
         break;
       case 'return-date':
-        setReturnDate(value);
+        // Garantir formato correto da data (YYYY-MM-DD)
+        const formattedReturnDate = value ? value.toString() : '';
+        setReturnDate(formattedReturnDate);
         break;
       case 'adults':
         setAdults(parseInt(value) || 1);
