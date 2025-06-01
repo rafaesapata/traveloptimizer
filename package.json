@@ -1,0 +1,14 @@
+{
+  "name": "traveloptimizer",
+  "version": "1.0.0",
+  "description": "Flight search aggregator using Node.js and React",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "echo \"No tests specified\""
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
