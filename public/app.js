@@ -476,7 +476,14 @@ function App() {
                 type: 'date',
                 className: 'form-control',
                 value: departureDate,
-                onChange: handleInputChange
+                onChange: (e) => {
+                  console.log('Data de ida onChange:', e.target.value);
+                  handleInputChange(e);
+                },
+                onInput: (e) => {
+                  console.log('Data de ida onInput:', e.target.value);
+                  handleInputChange(e);
+                }
               })
             ),
             React.createElement('div', { className: 'form-group' },
