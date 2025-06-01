@@ -18,7 +18,17 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
+// Servir arquivos estáticos - tentar múltiplos caminhos para compatibilidade
+const staticPaths = [
+  path.join(__dirname, '../public'),
+  path.join(__dirname, '../dist/public'),
+  path.join(__dirname, '../../public')
+];
+
+staticPaths.forEach(staticPath => {
+  console.log(`Tentando servir arquivos estáticos de: ${staticPath}`);
+  app.use(express.static(staticPath));
+});
 
 // Endpoint para busca de voos
 app.get('/api/flights', async (req, res) => {
