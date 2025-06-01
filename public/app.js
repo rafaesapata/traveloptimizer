@@ -191,7 +191,51 @@ function App() {
   
   // Filtrar e ordenar resultados
   const getFilteredAndSortedResults = () => {
-    let filtered = [...results];
+    // Verificar se results é um array válido
+    if (!results || !Array.isArray(results) || results.length === 0) {
+      return [];
+    }
+    
+    // Processar resultados para garantir estrutura consistente
+    const processedResults = [];
+    
+    // Iterar sobre os provedores
+    for (const provider of results) {
+      if (!provider || !provider.flights || !Array.isArray(provider.flights)) {
+        continue; // Pular provedores sem voos válidos
+      }
+      
+      // Processar cada voo do provedor
+      for (const flight of provider.flights) {
+        if (!flight) continue;
+        
+        // Criar objeto de voo com valores padrão para propriedades ausentes
+        const processedFlight = {
+          id: flight.id || `flight-${Math.random().toString(36).substring(2, 9)}`,
+          airline: flight.airline || provider.provider || 'Desconhecida',
+          flightNumber: flight.flightNumber || 'N/A',
+          origin: flight.origin || origin || 'N/A',
+          destination: flight.destination || destination || 'N/A',
+          price: typeof flight.price === 'number' ? flight.price : 0,
+          milesPrice: typeof flight.milesPrice === 'number' ? flight.milesPrice : 0,
+          stops: typeof flight.stops === 'number' ? flight.stops : 0,
+          duration: flight.duration || 'N/A',
+          durationMinutes: typeof flight.durationMinutes === 'number' ? flight.durationMinutes : 0,
+          departureTime: flight.departureTime || (flight.details && flight.details.departureTime) || 'N/A',
+          arrivalTime: flight.arrivalTime || (flight.details && flight.details.arrivalTime) || 'N/A',
+          departureDate: flight.departureDate || departureDate || 'N/A',
+          returnDate: flight.returnDate || returnDate || 'N/A',
+          cabin: flight.cabin || cabinClass || 'economy',
+          isSmartCombo: !!flight.isSmartCombo,
+          originalPrice: flight.originalPrice || null,
+          details: flight.details || {}
+        };
+        
+        processedResults.push(processedFlight);
+      }
+    }
+    
+    let filtered = [...processedResults];
     
     // Aplicar filtros
     if (stopFilter) {
@@ -207,21 +251,26 @@ function App() {
       filtered = filtered.filter(flight => flight.cabin === cabinFilter);
     }
     
-    // Aplicar ordenação
+    // Aplicar ordenação com verificações de segurança
     filtered.sort((a, b) => {
-      switch (sortKey) {
-        case 'price':
-          return a.price - b.price;
-        case 'duration':
-          return a.durationMinutes - b.durationMinutes;
-        case 'stops':
-          return a.stops - b.stops;
-        case 'departure':
-          return a.departureTime.localeCompare(b.departureTime);
-        case 'arrival':
-          return a.arrivalTime.localeCompare(b.arrivalTime);
-        default:
-          return 0;
+      try {
+        switch (sortKey) {
+          case 'price':
+            return (a.price || 0) - (b.price || 0);
+          case 'duration':
+            return (a.durationMinutes || 0) - (b.durationMinutes || 0);
+          case 'stops':
+            return (a.stops || 0) - (b.stops || 0);
+          case 'departure':
+            return (a.departureTime || '').localeCompare(b.departureTime || '');
+          case 'arrival':
+            return (a.arrivalTime || '').localeCompare(b.arrivalTime || '');
+          default:
+            return 0;
+        }
+      } catch (error) {
+        console.error('Erro ao ordenar voos:', error);
+        return 0;
       }
     });
     

@@ -48,7 +48,11 @@ const utils = {
       errors.destination = 'Destino é obrigatório';
     }
     
-    if (formData.origin === formData.destination) {
+    // Normalizar origem e destino antes de comparar (remover espaços e converter para maiúsculas)
+    const normalizedOrigin = formData.origin ? formData.origin.trim().toUpperCase() : '';
+    const normalizedDestination = formData.destination ? formData.destination.trim().toUpperCase() : '';
+    
+    if (normalizedOrigin && normalizedDestination && normalizedOrigin === normalizedDestination) {
       errors.destination = 'Destino deve ser diferente da origem';
     }
     

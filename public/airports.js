@@ -1,5 +1,5 @@
 // Lista de aeroportos principais com código IATA e nome
-const airports = [
+window.airports = [
   { code: 'MGF', name: 'Maringá - Silvio Name Junior Regional Airport', country: 'Brasil' },
   { code: 'MCO', name: 'Orlando International Airport', country: 'Estados Unidos' },
   { code: 'GRU', name: 'São Paulo - Guarulhos International Airport', country: 'Brasil' },
@@ -62,11 +62,11 @@ const airports = [
 ];
 
 // Função para buscar aeroportos com base em um termo de pesquisa
-function searchAirports(term) {
+window.searchAirports = function(term) {
   if (!term || term.length < 2) return [];
   
   const searchTerm = term.toLowerCase();
-  return airports.filter(airport => 
+  return window.airports.filter(airport => 
     airport.code.toLowerCase().includes(searchTerm) || 
     airport.name.toLowerCase().includes(searchTerm) ||
     airport.country.toLowerCase().includes(searchTerm)
