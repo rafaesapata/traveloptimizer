@@ -30,9 +30,33 @@ function App() {
   const [periodResults, setPeriodResults] = React.useState([]);
   const [expandedFlightId, setExpandedFlightId] = React.useState(null);
   
+  // Função para validar e formatar data
+  const validateAndFormatDate = (dateValue) => {
+    if (!dateValue) return '';
+    
+    // Se a data já está no formato correto YYYY-MM-DD, retorna como está
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (dateRegex.test(dateValue)) {
+      return dateValue;
+    }
+    
+    // Se a data está malformada, tenta corrigir
+    // Remove caracteres não numéricos e hífens
+    const cleanValue = dateValue.replace(/[^\d-]/g, '');
+    
+    // Se tem mais de 10 caracteres, trunca
+    if (cleanValue.length > 10) {
+      return cleanValue.substring(0, 10);
+    }
+    
+    return cleanValue;
+  };
+
   // Manipuladores de eventos para formulário
   const handleInputChange = (e) => {
     const { id, value } = e.target;
+    
+    console.log(`handleInputChange: id=${id}, value=${value}, type=${typeof value}`);
     
     switch (id) {
       case 'origin':
@@ -42,13 +66,17 @@ function App() {
         setDestination(value);
         break;
       case 'departure-date':
-        // Garantir formato correto da data (YYYY-MM-DD)
-        const formattedDepartureDate = value ? value.toString() : '';
+        // Validar e formatar data de ida
+        console.log(`Data de ida recebida: ${value}`);
+        const formattedDepartureDate = validateAndFormatDate(value);
+        console.log(`Data de ida formatada: ${formattedDepartureDate}`);
         setDepartureDate(formattedDepartureDate);
         break;
       case 'return-date':
-        // Garantir formato correto da data (YYYY-MM-DD)
-        const formattedReturnDate = value ? value.toString() : '';
+        // Validar e formatar data de volta
+        console.log(`Data de volta recebida: ${value}`);
+        const formattedReturnDate = validateAndFormatDate(value);
+        console.log(`Data de volta formatada: ${formattedReturnDate}`);
         setReturnDate(formattedReturnDate);
         break;
       case 'adults':

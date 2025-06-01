@@ -1,6 +1,6 @@
 {
   "name": "traveloptimizer",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Flight search aggregator using Node.js and React",
   "main": "server/index.js",
   "engines": {
