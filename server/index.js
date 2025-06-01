@@ -35,19 +35,19 @@ staticPaths.forEach(staticPath => {
 
 // Endpoint para busca de voos - POST /api/search (usado pelo frontend)
 app.post('/api/search', async (req, res) => {
-  // Configurar timeout global para o endpoint (30 segundos para permitir crawler)
-  const ENDPOINT_TIMEOUT = 30000;
+  // Configurar timeout global para o endpoint (5 minutos para permitir crawler)
+  const ENDPOINT_TIMEOUT = 300000;
   let endpointTimer = null;
   
   // Configurar timeout global para garantir resposta
   endpointTimer = setTimeout(() => {
-    console.log('[TIMEOUT] Timeout global do endpoint atingido após 30 segundos');
+    console.log('[TIMEOUT] Timeout global do endpoint atingido após 5 minutos');
     if (!res.headersSent) {
       return res.status(408).json({
         success: false,
         results: [],
-        errors: [{provider: 'Sistema', error: 'Timeout global do endpoint atingido após 30 segundos'}],
-        message: 'A busca demorou muito para responder. O crawler pode estar enfrentando dificuldades. Tente novamente em alguns minutos.'
+        errors: [{provider: 'Sistema', error: 'Timeout global do endpoint atingido após 5 minutos'}],
+        message: 'A busca demorou mais de 5 minutos para responder. O crawler pode estar enfrentando dificuldades. Tente novamente em alguns minutos.'
       });
     }
   }, ENDPOINT_TIMEOUT);

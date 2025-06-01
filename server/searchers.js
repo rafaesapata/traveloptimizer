@@ -416,11 +416,11 @@ async function searchLatamFlights(origin, destination, departureDate, returnDate
       throw new Error('Falha ao inicializar o crawler da LATAM. Verifique se o Puppeteer está instalado corretamente.');
     }
 
-    // Buscar voos reais com timeout
+    // Buscar voos reais com timeout de 4 minutos
     const realFlights = await Promise.race([
       crawler.searchFlights(origin, destination, departureDate, returnDate),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout do crawler após 25 segundos')), 25000)
+        setTimeout(() => reject(new Error('Timeout do crawler após 4 minutos')), 240000)
       )
     ]);
     
