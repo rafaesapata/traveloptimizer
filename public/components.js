@@ -57,10 +57,10 @@ function AutocompleteInput({ id, placeholder, onChange, value }) {
     if (value.length >= 2) {
       // Filtrar aeroportos baseado no input
       const filtered = window.airports.filter(airport => 
-        airport.code.toLowerCase().includes(value.toLowerCase()) || 
-        airport.name.toLowerCase().includes(value.toLowerCase()) ||
-        airport.city.toLowerCase().includes(value.toLowerCase()) ||
-        airport.country.toLowerCase().includes(value.toLowerCase())
+        (airport.code && airport.code.toLowerCase().includes(value.toLowerCase())) || 
+        (airport.name && airport.name.toLowerCase().includes(value.toLowerCase())) ||
+        (airport.city && airport.city.toLowerCase().includes(value.toLowerCase())) ||
+        (airport.country && airport.country.toLowerCase().includes(value.toLowerCase()))
       ).slice(0, 10);
       
       setSuggestions(filtered);
@@ -128,10 +128,10 @@ function AutocompleteInput({ id, placeholder, onChange, value }) {
             className: index === selectedIndex ? 'suggestion-item selected' : 'suggestion-item',
             onClick: () => handleSuggestionClick(suggestion)
           },
-            React.createElement('div', { className: 'suggestion-code' }, suggestion.code),
+            React.createElement('div', { className: 'suggestion-code' }, suggestion.code || ''),
             React.createElement('div', { className: 'suggestion-details' },
-              React.createElement('div', { className: 'suggestion-name' }, suggestion.name),
-              React.createElement('div', { className: 'suggestion-location' }, `${suggestion.city}, ${suggestion.country}`)
+              React.createElement('div', { className: 'suggestion-name' }, suggestion.name || ''),
+              React.createElement('div', { className: 'suggestion-location' }, `${suggestion.city || ''}, ${suggestion.country || ''}`)
             )
           )
         )
@@ -146,7 +146,7 @@ function Footer() {
     React.createElement('div', { className: 'container' },
       React.createElement('div', { className: 'footer-content' },
         React.createElement('div', { className: 'footer-copyright' },
-          React.createElement('p', null, '© 2025 UDS Travel Optimizer v1.2.1')
+          React.createElement('p', null, '© 2025 UDS Travel Optimizer v1.2.2')
         ),
         React.createElement('div', { className: 'footer-links' },
           React.createElement('a', { href: '#', className: 'footer-link' }, 'Termos de Uso'),
