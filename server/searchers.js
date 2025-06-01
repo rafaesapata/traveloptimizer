@@ -66,6 +66,27 @@ async function simulatePriceForDate(origin, destination, date, adults = 1, child
 
 // Função para formatar dados de voo de forma consistente
 function createFlight(provider, origin, destination, price, stops, duration, category, departureDate, returnDate, description = null) {
+  // Gerar número de voo realista baseado na companhia aérea
+  let flightNumber = 'N/A';
+  
+  if (provider === 'Latam') {
+    // LATAM usa códigos LA seguidos de números de 3-4 dígitos
+    const flightNumbers = ['LA3001', 'LA3002', 'LA3003', 'LA3004', 'LA3005', 'LA3006', 'LA3007', 'LA3008', 'LA3009', 'LA3010'];
+    flightNumber = flightNumbers[Math.floor(Math.random() * flightNumbers.length)];
+  } else if (provider === 'Skyscanner') {
+    flightNumber = `SK${Math.floor(Math.random() * 1000) + 1000}`;
+  } else if (provider === 'Kayak') {
+    flightNumber = `KY${Math.floor(Math.random() * 1000) + 1000}`;
+  } else if (provider === 'Decolar') {
+    flightNumber = `DC${Math.floor(Math.random() * 1000) + 1000}`;
+  } else if (provider === 'Copa Airlines') {
+    flightNumber = `CM${Math.floor(Math.random() * 900) + 100}`;
+  } else if (provider === 'Azul') {
+    flightNumber = `AD${Math.floor(Math.random() * 9000) + 1000}`;
+  } else if (provider === 'Gol') {
+    flightNumber = `G3${Math.floor(Math.random() * 9000) + 1000}`;
+  }
+  
   return {
     provider,
     origin,
@@ -76,6 +97,7 @@ function createFlight(provider, origin, destination, price, stops, duration, cat
     category,
     departureDate,
     returnDate,
+    flightNumber,
     description: description || `${category} - ${stops === 0 ? 'Direto' : stops + ' escala(s)'}`
   };
 }

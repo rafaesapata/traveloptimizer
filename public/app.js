@@ -618,6 +618,7 @@ function App() {
             React.createElement('thead', null,
               React.createElement('tr', null,
                 React.createElement('th', null, 'Companhia'),
+                React.createElement('th', null, 'Voo'),
                 React.createElement('th', null, 'Preço'),
                 React.createElement('th', null, 'Horários'),
                 React.createElement('th', null, 'Paradas'),
@@ -646,6 +647,11 @@ function App() {
                           window.getAirlineIcon(flight.airline)
                         ),
                         React.createElement('span', { className: 'airline-name' }, flight.airline)
+                      )
+                    ),
+                    React.createElement('td', null,
+                      React.createElement('div', { className: 'flight-number' },
+                        React.createElement('span', { className: 'flight-number-text' }, flight.flightNumber || 'N/A')
                       )
                     ),
                     React.createElement('td', null,
@@ -678,7 +684,7 @@ function App() {
                   
                   // Detalhes expandidos do voo
                   isExpanded && React.createElement('tr', { key: `${flight.id}-details`, className: 'flight-details-row' },
-                    React.createElement('td', { colSpan: '8' },
+                    React.createElement('td', { colSpan: '9' },
                       React.createElement('div', { className: 'flight-details' },
                         React.createElement('div', { className: 'flight-segments' },
                           React.createElement('h4', null, 'Detalhes do voo'),
