@@ -127,11 +127,21 @@ function App() {
   const handleSearch = async (e) => {
     e.preventDefault();
     
+    // Sincronizar campo de data antes da validação
+    const dateField = document.querySelector('input[id="departure-date"]');
+    const actualDepartureDate = dateField ? dateField.value : departureDate;
+    
+    // Se o campo HTML tem valor mas o estado não, atualizar o estado
+    if (dateField && dateField.value && !departureDate) {
+      console.log("Sincronizando data do campo HTML:", dateField.value);
+      setDepartureDate(dateField.value);
+    }
+    
     // Validar formulário
     const formData = {
       origin,
       destination,
-      departureDate,
+      departureDate: actualDepartureDate || departureDate, // Usar valor do campo HTML se disponível
       returnDate,
       adults,
       children,
@@ -140,9 +150,12 @@ function App() {
       useSmartSearch
     };
     
+    console.log("FormData preparado para validação:", formData);
+    
     const validation = window.Utils.validateSearchForm(formData);
     
     if (!validation.isValid) {
+      console.error("Validação falhou:", validation.errors);
       setError(Object.values(validation.errors).join(', '));
       return;
     }
