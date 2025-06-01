@@ -31,12 +31,9 @@ const api = {
   searchPeriod: async (params) => {
     console.log("API: Iniciando busca por período com parâmetros:", params);
     try {
-      const response = await fetch('/api/period', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(params)
+      const query = new URLSearchParams(params).toString();
+      const response = await fetch(`/api/best-prices?${query}`, {
+        method: 'GET'
       });
       
       if (!response.ok) {
