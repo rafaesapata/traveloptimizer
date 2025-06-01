@@ -65,7 +65,7 @@ async function simulatePriceForDate(origin, destination, date, adults = 1, child
 }
 
 // Função para formatar dados de voo de forma consistente
-function createFlight(provider, origin, destination, price, stops, duration, category, departureDate, returnDate) {
+function createFlight(provider, origin, destination, price, stops, duration, category, departureDate, returnDate, description = null) {
   return {
     provider,
     origin,
@@ -75,7 +75,8 @@ function createFlight(provider, origin, destination, price, stops, duration, cat
     duration,
     category,
     departureDate,
-    returnDate
+    returnDate,
+    description: description || `${category} - ${stops === 0 ? 'Direto' : stops + ' escala(s)'}`
   };
 }
 
@@ -360,8 +361,11 @@ async function searchAzul(origin, destination, departureDate, returnDate, adults
 async function searchLatam(origin, destination, departureDate, returnDate, adults = 1, children = 0) {
   await validatePermissions();
   
+  const isRoundTrip = returnDate && returnDate.trim() !== '';
+  
   try {
     console.log(`[LATAM] Buscando voos de ${origin} para ${destination} para ${adults} adultos e ${children} crianças`);
+    console.log(`[LATAM] Tipo de busca: ${isRoundTrip ? 'ida e volta' : 'apenas ida'}`);
     
     // Implementação real usando a API da Latam
     const options = {
@@ -371,7 +375,7 @@ async function searchLatam(origin, destination, departureDate, returnDate, adult
         origin: origin,
         destination: destination,
         departureDate: departureDate,
-        returnDate: returnDate,
+        returnDate: isRoundTrip ? returnDate : undefined,
         adults: adults.toString(),
         children: children.toString(),
         cabinClass: 'economy'
@@ -396,7 +400,7 @@ async function searchLatam(origin, destination, departureDate, returnDate, adult
           flight.duration || 6,
           flight.cabinClass || 'Economy',
           departureDate,
-          returnDate
+          isRoundTrip ? returnDate : null
         );
       });
     }
@@ -404,21 +408,100 @@ async function searchLatam(origin, destination, departureDate, returnDate, adult
     // Se a API não retornar dados, usar dados realistas baseados em padrões da LATAM
     console.log('[LATAM] API não retornou dados, usando dados baseados em padrões reais da LATAM');
     
-    // Dados realistas baseados em rotas e preços típicos da LATAM
-    const basePrice = getLatamBasePrice(origin, destination);
-    const totalPassengers = adults + children;
+    return generateLatamFlights(origin, destination, departureDate, returnDate, adults, children, isRoundTrip);
     
-    return [
+  } catch (error) {
+    console.error('[LATAM] Erro na busca:', error.message);
+    
+    // Fallback com dados realistas da LATAM
+    console.log('[LATAM] Usando fallback com dados realistas');
+    return generateLatamFlights(origin, destination, departureDate, returnDate, adults, children, isRoundTrip);
+  }
+}
+
+// Função para gerar voos da LATAM baseado no tipo de busca
+function generateLatamFlights(origin, destination, departureDate, returnDate, adults, children, isRoundTrip) {
+  const basePrice = getLatamBasePrice(origin, destination);
+  const flights = [];
+  
+  if (isRoundTrip) {
+    console.log('[LATAM] Gerando voos de ida e volta');
+    
+    // Voos combinados de ida e volta
+    flights.push(
       createFlight(
         'Latam',
         origin,
         destination,
-        Math.round(basePrice * adults + basePrice * 0.75 * children), // Desconto para crianças
+        Math.round((basePrice * 1.8) * adults + (basePrice * 1.8) * 0.75 * children), // Desconto ida e volta
         0, // Voo direto
         getFlightDuration(origin, destination),
         'Economy',
         departureDate,
-        returnDate
+        returnDate,
+        'Ida e volta combinada'
+      ),
+      createFlight(
+        'Latam',
+        origin,
+        destination,
+        Math.round((basePrice * 1.8 + 200) * adults + (basePrice * 1.8 + 200) * 0.75 * children),
+        1, // 1 escala
+        getFlightDuration(origin, destination) + 2,
+        'Economy',
+        departureDate,
+        returnDate,
+        'Ida e volta combinada - 1 escala'
+      ),
+      createFlight(
+        'Latam',
+        origin,
+        destination,
+        Math.round((basePrice * 4.5) * adults + (basePrice * 4.5) * 0.75 * children),
+        0, // Voo direto
+        getFlightDuration(origin, destination),
+        'Business',
+        departureDate,
+        returnDate,
+        'Ida e volta combinada - Business'
+      )
+    );
+    
+    // Voos separados de ida e volta (opção flexível)
+    const outboundPrice = Math.round(basePrice * adults + basePrice * 0.75 * children);
+    const returnPrice = Math.round(basePrice * adults + basePrice * 0.75 * children);
+    
+    flights.push(
+      createFlight(
+        'Latam',
+        origin,
+        destination,
+        outboundPrice + returnPrice,
+        0,
+        getFlightDuration(origin, destination),
+        'Economy',
+        departureDate,
+        returnDate,
+        'Voos separados - Flexibilidade total'
+      )
+    );
+    
+  } else {
+    console.log('[LATAM] Gerando voos apenas de ida');
+    
+    // Voos apenas de ida
+    flights.push(
+      createFlight(
+        'Latam',
+        origin,
+        destination,
+        Math.round(basePrice * adults + basePrice * 0.75 * children),
+        0, // Voo direto
+        getFlightDuration(origin, destination),
+        'Economy',
+        departureDate,
+        null,
+        'Apenas ida'
       ),
       createFlight(
         'Latam',
@@ -429,7 +512,8 @@ async function searchLatam(origin, destination, departureDate, returnDate, adult
         getFlightDuration(origin, destination) + 2,
         'Economy',
         departureDate,
-        returnDate
+        null,
+        'Apenas ida - 1 escala'
       ),
       createFlight(
         'Latam',
@@ -440,42 +524,13 @@ async function searchLatam(origin, destination, departureDate, returnDate, adult
         getFlightDuration(origin, destination),
         'Business',
         departureDate,
-        returnDate
+        null,
+        'Apenas ida - Business'
       )
-    ];
-    
-  } catch (error) {
-    console.error('[LATAM] Erro na busca:', error.message);
-    
-    // Fallback com dados realistas da LATAM
-    console.log('[LATAM] Usando fallback com dados realistas');
-    const basePrice = getLatamBasePrice(origin, destination);
-    
-    return [
-      createFlight(
-        'Latam',
-        origin,
-        destination,
-        Math.round(basePrice * adults + basePrice * 0.75 * children),
-        0,
-        getFlightDuration(origin, destination),
-        'Economy',
-        departureDate,
-        returnDate
-      ),
-      createFlight(
-        'Latam',
-        origin,
-        destination,
-        Math.round((basePrice + 200) * adults + (basePrice + 200) * 0.75 * children),
-        1,
-        getFlightDuration(origin, destination) + 3,
-        'Economy',
-        departureDate,
-        returnDate
-      )
-    ];
+    );
   }
+  
+  return flights;
 }
 
 // Função para obter preço base realista da LATAM baseado na rota
