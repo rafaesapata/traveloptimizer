@@ -207,10 +207,17 @@ function ProviderResults({ providerData, useMiles, sortKey, filterStops, filterC
   const filteredFlights = flights
     .filter(f => (filterStops === '' || f.stops === Number(filterStops)) && 
                 (filterCabin === '' || f.category.toLowerCase().includes(filterCabin.toLowerCase())))
-    .sort((a, b) => {
+        .sort((a, b) => {
+      // Sempre ordenar por preço primeiro, independente do sortKey selecionado
+      if (true) {
+        const aValue = useMiles ? a.milesPrice : a.price;
+        const bValue = useMiles ? b.milesPrice : b.price;
+        return aValue - bValue;
+      }
+      
       const aValue = useMiles && sortKey === 'price' ? a.milesPrice : a[sortKey];
       const bValue = useMiles && sortKey === 'price' ? b.milesPrice : b[sortKey];
-      
+
       if (sortKey === 'price' || sortKey === 'milesPrice') {
         return aValue - bValue;
       }
@@ -382,13 +389,33 @@ function PeriodResults({ results, origin, destination, onSelectDate }) {
         React.createElement('div', { 
           key: index, 
           className: 'best-price-card',
-          onClick: () => onSelectDate(result.date)
+          onClick: () => onSelectDate(result.departureDate || result.date, result.returnDate)
         },
           React.createElement('div', { className: 'price-card-header' }, 
             React.createElement('span', { className: 'price-rank' }, `#${index + 1}`),
             React.createElement('span', { className: 'price-value' }, `$${result.price}`)
           ),
-          React.createElement('div', { className: 'price-card-date' }, result.formattedDate),
+          React.createElement('div', { className: 'price-card-dates' },
+            React.createElement('div', { className: 'price-card-departure' },
+              React.createElement('span', { className: 'date-label' }, 'Ida:'),
+              React.createElement('span', { className: 'date-value' }, result.formattedDepartureDate || result.formattedDate)
+            ),
+            result.formattedReturnDate && React.createElement('div', { className: 'price-card-return' },
+              React.createElement('span', { className: 'date-label' }, 'Volta:'),
+              React.createElement('span', { className: 'date-value' }, result.formattedReturnDate)
+            )
+          ),
+          React.createElement('div', { className: 'price-card-details' },
+            result.tripDuration && React.createElement('div', { className: 'price-card-duration' }, 
+              `${result.tripDuration} dias de viagem`
+            ),
+            result.flightNumber && React.createElement('div', { className: 'price-card-flight' }, 
+              `Voo: ${result.flightNumber}`
+            ),
+            result.provider && React.createElement('div', { className: 'price-card-provider' }, 
+              `${result.provider}`
+            )
+          ),
           React.createElement('button', { className: 'select-date-button' }, 'Selecionar')
         )
       )
@@ -436,6 +463,7 @@ function getMonthName(monthStr) {
   const [usePeriodSearch, setUsePeriodSearch] = useState(false);
   const [startMonth, setStartMonth] = useState(getCurrentMonth());
   const [endMonth, setEndMonth] = useState(getNextMonth());
+  const [tripDuration, setTripDuration] = useState(7);
   const [periodResults, setPeriodResults] = useState([]);
   
   // Estados para resultados
@@ -672,28 +700,22 @@ function getMonthName(monthStr) {
     ),
     
     // Formulário de busca padrão (por datas específicas)
-    !usePeriodSearch && React.createElement('div', null,
-      React.createElement('div', { className: 'form-row' },
-        React.createElement('div', { className: 'form-group' },
-          React.createElement('label', { htmlFor: 'origin' }, 'Origem'),
-          React.createElement('input', {
-            id: 'origin',
-            type: 'text',
-            value: origin,
-            onChange: e => setOrigin(e.target.value),
-            placeholder: 'Ex: MGF'
-          })
-        ),
-        React.createElement('div', { className: 'form-group' },
-          React.createElement('label', { htmlFor: 'destination' }, 'Destino'),
-          React.createElement('input', {
-            id: 'destination',
-            type: 'text',
-            value: destination,
-            onChange: e => setDestination(e.target.value),
-            placeholder: 'Ex: MCO'
-          })
-        ),
+    !usePeriodSearch && R    // Formulário de busca normal (datas específicas)
+    !usePeriodSearch && React.createElement('div', { className: 'form-row' },
+      React.createElement(AirportAutocomplete, {
+        id: 'origin',
+        label: 'Origem',
+        value: origin,
+        onChange: setOrigin,
+        placeholder: 'Ex: MGF ou Maringá'
+      }),
+      React.createElement(AirportAutocomplete, {
+        id: 'destination',
+        label: 'Destino',
+        value: destination,
+        onChange: setDestination,
+        placeholder: 'Ex: MCO ou Orlando'
+      }),
         React.createElement('div', { className: 'form-group' },
           React.createElement('label', { htmlFor: 'departureDate' }, 'Data de Ida'),
           React.createElement('input', {
@@ -776,46 +798,69 @@ function getMonthName(monthStr) {
     ),
     
     // Formulário de busca por período (menor preço)
-    usePeriodSearch && React.createElement('div', { className: 'form-row' },
-      React.createElement('div', { className: 'form-group' },
-        React.createElement('label', { htmlFor: 'origin' }, 'Origem'),
-        React.createElement('input', {
-          id: 'origin',
-          type: 'text',
+    usePeriodSearch && React.createElement('div', null,
+      React.createElement('div', { className: 'form-row' },
+        React.createElement(AirportAutocomplete, {
+          id: 'origin-period',
+          label: 'Origem',
           value: origin,
-          onChange: e => setOrigin(e.target.value),
-          placeholder: 'Ex: MGF'
-        })
-      ),
-      React.createElement('div', { className: 'form-group' },
-        React.createElement('label', { htmlFor: 'destination' }, 'Destino'),
-        React.createElement('input', {
-          id: 'destination',
-          type: 'text',
+          onChange: setOrigin,
+          placeholder: 'Ex: MGF ou Maringá'
+        }),
+        React.createElement(AirportAutocomplete, {
+          id: 'destination-period',
+          label: 'Destino',
           value: destination,
-          onChange: e => setDestination(e.target.value),
-          placeholder: 'Ex: MCO'
+          onChange: setDestination,
+          placeholder: 'Ex: MCO ou Orlando'
         })
       ),
-      React.createElement('div', { className: 'form-group' },
-        React.createElement('label', { htmlFor: 'startMonth' }, 'Mês Inicial'),
-        React.createElement('input', {
-          id: 'startMonth',
-          type: 'month',
-          value: startMonth,
-          onChange: e => setStartMonth(e.target.value),
-          min: getCurrentMonth()
-        })
-      ),
-      React.createElement('div', { className: 'form-group' },
-        React.createElement('label', { htmlFor: 'endMonth' }, 'Mês Final'),
-        React.createElement('input', {
-          id: 'endMonth',
-          type: 'month',
-          value: endMonth,
-          onChange: e => setEndMonth(e.target.value),
-          min: startMonth
-        })
+      React.createElement('div', { className: 'form-row' },
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { htmlFor: 'startMonth' }, 'Mês Inicial'),
+          React.createElement('input', {
+            id: 'startMonth',
+            type: 'month',
+            value: startMonth,
+            onChange: e => setStartMonth(e.target.value),
+            min: getCurrentMonth()
+          })
+        ),
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { htmlFor: 'endMonth' }, 'Mês Final'),
+          React.createElement('input', {
+            id: 'endMonth',
+            type: 'month',
+            value: endMonth,
+            onChange: e => setEndMonth(e.target.value),
+            min: startMonth
+          })
+        ),
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { htmlFor: 'tripDuration' }, 'Duração da Viagem (dias)'),
+          React.createElement('div', { className: 'number-input' },
+            React.createElement('button', { 
+              type: 'button',
+              className: 'decrement',
+              onClick: () => setTripDuration(prev => Math.max(1, prev - 1)),
+              disabled: tripDuration <= 1
+            }, '-'),
+            React.createElement('input', {
+              id: 'tripDuration',
+              type: 'number',
+              min: '1',
+              max: '30',
+              value: tripDuration,
+              onChange: e => setTripDuration(Math.min(30, Math.max(1, parseInt(e.target.value) || 7)))
+            }),
+            React.createElement('button', { 
+              type: 'button',
+              className: 'increment',
+              onClick: () => setTripDuration(prev => Math.min(30, prev + 1)),
+              disabled: tripDuration >= 30
+            }, '+')
+          )
+        )
       )
     ),
     
@@ -846,7 +891,7 @@ function getMonthName(monthStr) {
     // Informação sobre a busca por período
     usePeriodSearch && React.createElement('div', { className: 'period-search-info' },
       React.createElement('p', null, 
-        `Buscando os 10 dias com passagens mais baratas entre ${getMonthName(startMonth)} e ${getMonthName(endMonth)}`
+        `Buscando os 10 períodos de ${tripDuration} dias com passagens mais baratas entre ${getMonthName(startMonth)} e ${getMonthName(endMonth)}`
       )
     ),
     

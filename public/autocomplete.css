@@ -1,0 +1,140 @@
+/* Estilos para o componente de autocomplete */
+.autocomplete-container {
+  position: relative;
+  width: 100%;
+}
+
+.autocomplete-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--uds-border);
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.autocomplete-input:focus {
+  border-color: var(--uds-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 120, 215, 0.2);
+}
+
+.autocomplete-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid var(--uds-border);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.autocomplete-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--uds-border);
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover, .autocomplete-item.selected {
+  background-color: var(--uds-light-bg);
+}
+
+.autocomplete-code {
+  font-weight: bold;
+  color: var(--uds-primary);
+  margin-right: 8px;
+}
+
+.autocomplete-name {
+  font-size: 0.9em;
+}
+
+.autocomplete-country {
+  font-size: 0.8em;
+  color: var(--uds-text-light);
+  margin-left: 8px;
+}
+
+.number-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--uds-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.number-input button {
+  background-color: var(--uds-light-bg);
+  border: none;
+  color: var(--uds-text);
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.number-input button:hover {
+  background-color: var(--uds-border);
+}
+
+.number-input button:disabled {
+  color: var(--uds-text-light);
+  cursor: not-allowed;
+}
+
+.number-input input {
+  width: 50px;
+  text-align: center;
+  border: none;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.number-input input:focus {
+  outline: none;
+}
+
+.price-card-dates {
+  margin: 10px 0;
+}
+
+.price-card-departure, .price-card-return {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.date-label {
+  font-weight: 500;
+  color: var(--uds-text);
+}
+
+.date-value {
+  color: var(--uds-text-light);
+}
+
+.price-card-details {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: var(--uds-text-light);
+}
+
+.price-card-duration, .price-card-flight, .price-card-provider {
+  margin-bottom: 3px;
+}
+
+.price-card-flight {
+  font-weight: 500;
+  color: var(--uds-primary);
+}
