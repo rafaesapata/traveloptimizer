@@ -343,6 +343,34 @@ function App() {
       });
   }, [results, stopFilter, cabinFilter, sortKey]);
   
+  // Renderizar rodapé
+  React.useEffect(() => {
+    const renderFooter = () => {
+      const footerContainer = document.getElementById('footer-container');
+      if (footerContainer) {
+        ReactDOM.render(
+          React.createElement('footer', { className: 'app-footer' },
+            React.createElement('div', { className: 'footer-content' },
+              React.createElement('div', { className: 'footer-logo' }, 'UDS Travel Optimizer'),
+              React.createElement('div', { className: 'footer-version' }, 'v1.2.1'),
+              React.createElement('div', { className: 'footer-copyright' }, '© 2025 UDS')
+            )
+          ),
+          footerContainer
+        );
+      }
+    };
+    
+    renderFooter();
+    
+    return () => {
+      const footerContainer = document.getElementById('footer-container');
+      if (footerContainer) {
+        ReactDOM.unmountComponentAtNode(footerContainer);
+      }
+    };
+  }, []);
+  
   // Renderizar componente
   return React.createElement('div', { className: 'app-container' },
     // Formulário de busca por período

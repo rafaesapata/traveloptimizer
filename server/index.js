@@ -580,22 +580,15 @@ app.get('/api/best-prices', async (req, res) => {
           departureDate: combo.departureDate,
           returnDate: combo.returnDate,
           price: cheapestFlight.price,
-          flightNumber: cheapestFlight.details?.flightNumber || `${cheapestFlight.provider.substring(0,2).toUpperCase()}${Math.floor(Math.random() * 1000) + 1000}`,
+          flightNumber: cheapestFlight.details?.flightNumber || `${cheapestFlight.provider.substring(0,2).toUpperCase()}${cheapestFlight.id || ''}`,
           provider: cheapestFlight.provider,
           tripDuration: numTripDuration
         };
       } catch (error) {
-        // Se todas as buscas falharem, usar um preço baseado em padrões de mercado
+        // Se todas as buscas falharem, propagar o erro para ser tratado pelo chamador
         console.error(`Erro ao buscar preços para ${combo.departureDate} - ${combo.returnDate}:`, error);
-        const basePrice = Math.floor(Math.random() * 300) + 400;
-        return { 
-          departureDate: combo.departureDate,
-          returnDate: combo.returnDate,
-          price: basePrice * numAdults + basePrice * 0.7 * numChildren,
-          flightNumber: `BK${Math.floor(Math.random() * 1000) + 1000}`,
-          provider: 'Backup',
-          tripDuration: numTripDuration
-        };
+        throw new Error(`Não foi possível obter dados reais para o período ${combo.departureDate} - ${combo.returnDate}`);
+      }
       }
     });
     
